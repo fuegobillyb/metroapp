@@ -1,8 +1,10 @@
+
 import React, { Component } from 'react';
 
-import { StyleSheet, Platform, View, ActivityIndicator, FlatList, Text, Image, Alert, YellowBox } from 'react-native';
+import { Button, StyleSheet, Platform, View, ActivityIndicator, FlatList, Text, Image, Alert, YellowBox } from 'react-native';
+import { createStackNavigator, createAppContainer } from 'react-navigation'; // Version can be specified in package.json
 
-export default class Project extends Component {
+class Metro extends Component {
 
  constructor(props) {
 
@@ -88,8 +90,15 @@ GetItem (title) {
 
               <Image source = {{ uri: item.image }} style={styles.imageView} />
 
-              <Text onPress={this.GetItem.bind(this, item.title)} style={styles.textView} >{item.title}</Text>
+              <Text onPress={() => {
 
+               /* 1. Navigate to the Details route with params */
+                this.props.navigation.navigate('Details', {
+                  isbn: item.isbn
+                });
+
+              }}
+                style={styles.textView}>{item.title}</Text>
             </View>
 
           }
@@ -102,6 +111,50 @@ GetItem (title) {
    );
  }
 }
+
+class DetailsScreen extends React.Component {
+  render() {
+    /* 2. Get the param, provide a fallback value if not available */
+    const { navigation } = this.props;
+    const isbn = navigation.getParam('isbn', 'NO-ID');
+
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <Text>Details Screen</Text>
+        <Text>isbn: {JSON.stringify(isbn)}</Text>
+        <Button
+          title="Go to Home"
+          onPress={() => this.props.navigation.navigate('Home')}
+        />
+        <Button
+          title="Go back"
+          onPress={() => this.props.navigation.goBack()}
+        />
+      </View>
+    );
+  }
+}
+
+const RootStack = createStackNavigator(
+  {
+    Home: Metro,
+    Details: DetailsScreen,
+  },
+  {
+    initialRouteName: 'Home',
+  }
+);
+
+const AppContainer = createAppContainer(RootStack);
+
+export default class App extends React.Component {
+  render() {
+    return <AppContainer />;
+  }
+}
+
+
+
 
 const styles = StyleSheet.create({
 
