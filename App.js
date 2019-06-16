@@ -3,6 +3,7 @@ import React, { Component } from 'react';
 
 import { Button, StyleSheet, Platform, View, ActivityIndicator, FlatList, Text, Image, Alert, YellowBox } from 'react-native';
 import { createStackNavigator, createAppContainer } from 'react-navigation'; // Version can be specified in package.json
+import { SearchBar } from 'react-native-elements';
 
 class Metro extends Component {
 
@@ -11,10 +12,13 @@ class Metro extends Component {
    super(props);
 
    this.state = {
-
+     search: '',
      isLoading: true
 
    }
+
+  this.arrayholder = [];
+
 
    YellowBox.ignoreWarnings([
     'Warning: componentWillMount is deprecated',
@@ -23,11 +27,6 @@ class Metro extends Component {
 
  }
 
-GetItem (title) {
-
- Alert.alert(title);
-
- }
 
  FlatListItemSeparator = () => {
    return (
@@ -49,15 +48,54 @@ GetItem (title) {
          this.setState({
            isLoading: false,
            dataSource: responseJson.books,
-         }, function(){
+         },
+          function() {
+            this.arrayholder = responseJson.books;
+          }
 
-         });
+         );
 
        })
        .catch((error) =>{
          console.error(error);
        });
    }
+
+     search = text => {
+       console.log(text);
+     };
+     clear = () => {
+       this.search.clear();
+     };
+
+  SearchFilterFunction(text) {
+    //passing the inserted text in textinput
+    const newData = this.arrayholder.filter(function(item) {
+      //applying filter for the inserted text in search bar
+      const itemData = item.title ? item.title.toUpperCase() : ''.toUpperCase();
+      const textData = text.toUpperCase();
+      return itemData.indexOf(textData) > -1;
+    });
+    this.setState({
+      //setting the filtered newData on datasource
+      //After setting the data it will automatically re-render the view
+      dataSource: newData,
+      search:text,
+    });
+  }
+
+    ListViewItemSeparator = () => {
+      //Item sparator view
+      return (
+        <View
+          style={{
+            height: 0.3,
+            width: '90%',
+            backgroundColor: '#080808',
+          }}
+        />
+      );
+    };
 
  render() {
 
@@ -77,6 +115,15 @@ GetItem (title) {
    return (
 
      <View style={styles.MainContainer}>
+
+             <SearchBar
+               round
+               searchIcon={{ size: 24 }}
+               onChangeText={text => this.SearchFilterFunction(text)}
+               onClear={text => this.SearchFilterFunction('')}
+               placeholder="Type Here..."
+               value={this.state.search}
+               />
 
        <FlatList
 
@@ -102,7 +149,8 @@ GetItem (title) {
             </View>
 
           }
-
+                  enableEmptySections={true}
+                  style={{ marginTop: 10 }}
         keyExtractor={(item, id) => id.toString()}
 
         />
