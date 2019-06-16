@@ -20,7 +20,7 @@ import {SearchBar} from 'react-native-elements';
 import {Table, TableWrapper, Row, Rows, Col, Cols, Cell} from 'react-native-table-component';
 
 
-class Metro extends Component {
+class HomeScreen extends Component {
 
     constructor(props) {
 
@@ -152,11 +152,7 @@ class Metro extends Component {
                             <Image source={{uri: item.image}} style={styles.imageView}/>
 
                             <Text onPress={() => {
-
-
-
-                                /* 1. Navigate to the Details route with params */
-                                this.props.navigation.navigate('Details', {
+                                this.props.navigation.navigate('Book', {
                                     isbn: item.isbn
                                 });
 
@@ -176,7 +172,7 @@ class Metro extends Component {
     }
 }
 
-class DetailsScreen extends React.Component {
+class BookScreen extends React.Component {
 
     constructor(props) {
 
@@ -190,7 +186,7 @@ class DetailsScreen extends React.Component {
 
         this.arrayholder = [];
         const {navigation} = this.props;
-        this.isbn = navigation.getParam('isbn', 'NO-ID');
+        this.isbn = navigation.getParam('isbn');
 
         YellowBox.ignoreWarnings([
             'Warning: componentWillMount is deprecated',
@@ -204,6 +200,8 @@ class DetailsScreen extends React.Component {
             .then((responseJson) => {
                 this.setState({
                         isLoading: false,
+                        author_id: responseJson.book.author.author.id,
+                        author: `${responseJson.book.author.author.last_name}, ${responseJson.book.author.author.first_name}`,
                         summary: responseJson.book.summary,
                         image: responseJson.book.image,
                         tableData: responseJson.book.copies.map(function (copy) { return [copy.copy["checked_out?"].toString(), copy.copy.library]})
@@ -221,26 +219,69 @@ class DetailsScreen extends React.Component {
         return (
             <ScrollView>
             <View>
+                <Text onPress={() => {
+                    /* 1. Navigate to the Author route with params */
+                    this.props.navigation.navigate('Author', {
+                        author_id: this.author_id
+                    });
+                }}>{this.state.author} </Text>
                 <Image source={{uri: this.state.image}} style={styles.imageView2}/>
                 <Text>{this.state.summary} </Text>
                 <Table borderStyle={{borderWidth: 2, borderColor: '#c8e1ff'}}>
                     <Row data={this.state.tableHead} style={styles.head} textStyle={styles.text}/>
                     <Rows data={this.state.tableData} textStyle={styles.text}/>
                 </Table>
-                <Button
-                    title="Go back"
-                    onPress={() => this.props.navigation.goBack()}
-                />
             </View>
         </ScrollView>
         );
     }
 }
 
+class AuthorScreen extends React.Component {
+
+    constructor(props) {
+
+        super(props);
+
+        this.state = {
+
+        }
+
+        this.arrayholder = [];
+        const {navigation} = this.props;
+        this.author_id = navigation.getParam('author_id');
+    }
+
+    componentDidMount() {
+        return fetch(`http://192.168.0.10:4000/api/authors/${this.author_id}`)
+            .then((response) => response.json())
+            .then((responseJson) => {
+                this.setState({
+                        isLoading: false
+                    },
+                    function () {
+                    }
+                );
+            })
+            .catch((error) => {
+                console.error(error);
+            });
+    }
+
+    render() {
+        return (
+            <View>
+                <Text>author</Text>
+            </View>
+        );
+    }
+}
+
 const RootStack = createStackNavigator(
     {
-        Home: Metro,
-        Details: DetailsScreen,
+        Home: HomeScreen,
+        Book: BookScreen,
+        Author: AuthorScreen,
     },
     {
         initialRouteName: 'Home',
