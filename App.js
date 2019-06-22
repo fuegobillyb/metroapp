@@ -1,9 +1,8 @@
-require('react-devtools-core').connectToDevTools({host: "http://192.168.0.10:8081"})
+require('react-devtools-core').connectToDevTools({host: "http://192.168.0.8:8081"})
 
 import React, {Component} from 'react';
 
 import {
-    Button,
     StyleSheet,
     Platform,
     View,
@@ -11,14 +10,10 @@ import {
     FlatList,
     Text,
     Image,
-    Alert,
-    ScrollView,
     YellowBox
 } from 'react-native';
 import {createStackNavigator, createAppContainer} from 'react-navigation'; // Version can be specified in package.json
 import {SearchBar} from 'react-native-elements';
-import {Table, TableWrapper, Row, Rows, Col, Cols, Cell} from 'react-native-table-component';
-
 
 class HomeScreen extends Component {
 
@@ -30,7 +25,7 @@ class HomeScreen extends Component {
             search: '',
             isLoading: true
 
-        }
+        };
 
         this.arrayholder = [];
 
@@ -53,10 +48,10 @@ class HomeScreen extends Component {
                 }}
             />
         );
-    }
+    };
 
     componentDidMount() {
-        return fetch('http://192.168.0.10:4000/api/books')
+        return fetch('http://192.168.0.8:4000/api/books')
             .then((response) => response.json())
             .then((responseJson) => {
 
@@ -132,6 +127,7 @@ class HomeScreen extends Component {
 
                 <SearchBar
                     round
+                    lightTheme
                     searchIcon={{size: 24}}
                     onChangeText={text => this.SearchFilterFunction(text)}
                     onClear={text => this.SearchFilterFunction('')}
@@ -172,110 +168,8 @@ class HomeScreen extends Component {
     }
 }
 
-class BookScreen extends React.Component {
-
-    constructor(props) {
-
-        super(props);
-
-        this.state = {
-            isLoading: true,
-            tableHead: ['Available', 'Library'],
-            tableData: []
-        }
-
-        this.arrayholder = [];
-        const {navigation} = this.props;
-        this.isbn = navigation.getParam('isbn');
-
-        YellowBox.ignoreWarnings([
-            'Warning: componentWillMount is deprecated',
-            'Warning: componentWillReceiveProps is deprecated',
-        ]);
-    }
-
-    componentDidMount() {
-        return fetch(`http://192.168.0.10:4000/api/books/${this.isbn}`)
-            .then((response) => response.json())
-            .then((responseJson) => {
-                this.setState({
-                        isLoading: false,
-                        author_id: responseJson.book.author.author.id,
-                        author: `${responseJson.book.author.author.last_name}, ${responseJson.book.author.author.first_name}`,
-                        summary: responseJson.book.summary,
-                        image: responseJson.book.image,
-                        tableData: responseJson.book.copies.map(function (copy) { return [copy.copy["checked_out?"].toString(), copy.copy.library]})
-                    },
-                    function () {
-                    }
-                );
-            })
-            .catch((error) => {
-                console.error(error);
-            });
-    }
-
-    render() {
-        return (
-            <ScrollView>
-            <View>
-                <Text onPress={() => {
-                    /* 1. Navigate to the Author route with params */
-                    this.props.navigation.navigate('Author', {
-                        author_id: this.author_id
-                    });
-                }}>{this.state.author} </Text>
-                <Image source={{uri: this.state.image}} style={styles.imageView2}/>
-                <Text>{this.state.summary} </Text>
-                <Table borderStyle={{borderWidth: 2, borderColor: '#c8e1ff'}}>
-                    <Row data={this.state.tableHead} style={styles.head} textStyle={styles.text}/>
-                    <Rows data={this.state.tableData} textStyle={styles.text}/>
-                </Table>
-            </View>
-        </ScrollView>
-        );
-    }
-}
-
-class AuthorScreen extends React.Component {
-
-    constructor(props) {
-
-        super(props);
-
-        this.state = {
-
-        }
-
-        this.arrayholder = [];
-        const {navigation} = this.props;
-        this.author_id = navigation.getParam('author_id');
-    }
-
-    componentDidMount() {
-        return fetch(`http://192.168.0.10:4000/api/authors/${this.author_id}`)
-            .then((response) => response.json())
-            .then((responseJson) => {
-                this.setState({
-                        isLoading: false
-                    },
-                    function () {
-                    }
-                );
-            })
-            .catch((error) => {
-                console.error(error);
-            });
-    }
-
-    render() {
-        return (
-            <View>
-                <Text>author</Text>
-            </View>
-        );
-    }
-}
+import BookScreen from './Book';
+import AuthorScreen from './Author'
 
 const RootStack = createStackNavigator(
     {
@@ -317,15 +211,6 @@ const styles = StyleSheet.create({
 
     },
 
-    imageView2: {
-
-        width: '100%',
-        height: '50%%',
-        margin: 7,
-        borderRadius: 7
-
-    },
-
     textView: {
 
         width: '50%',
@@ -333,10 +218,5 @@ const styles = StyleSheet.create({
         padding: 10,
         color: '#000'
 
-    },
-
-    // container: { flex: 1, padding: 16, paddingTop: 30, backgroundColor: '#fff' },
-    // head: { height: 40, backgroundColor: '#f1f8ff' },
-    // text: { margin: 6 }
-
+    }
 });
